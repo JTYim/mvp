@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Title</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+		<!-- <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script> -->
+		<style type="text/css">
+			body { background: #000; color: #800 }
+			#canvas { background: #003300 }
+			form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+			form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+		</style>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+
+	<body>
+		<h1>DRAW ON ME</h1>
+		<div id="container"></div>
+			<form action="">
+			<button id="clear">CLEAR</button>
+		</form>
+
+		<script>
+			var socket = io("/");
+			// console.log(io, socket);
+			socket.on("connect",function(){
+				console.log(" ** Socket Connected ");
+			});
+			socket.on("disconnect",function(){
+				console.log(" !! Socket Disconnected ");
+			});
+			// listener on server
+			socket.on("toClient",function(data){
+				console.log(" recv from server " ,data);
+			});
+
+			socket.on("test",function(data){
+				console.log("from other client" ,data);
+			});
+
+			var interval = setInterval(function(){
+				var date = new Date().toString();
+				socket.emit("toServer", date);
+			},15000);
+			
+			var width = window.innerWidth;
+			var height = window.innerHeight;
+			var canvasDiv = document.getElementById('container');
+			canvas = document.createElement('canvas');
+			canvas.setAttribute('width', width-50);
+			canvas.setAttribute('height', height);
+			canvas.setAttribute('id', 'canvas');
+			canvasDiv.appendChild(canvas);
+			if(typeof G_vmlCanvasManager != 'undefined') {
+				canvas = G_vmlCanvasManager.initElement(canvas);
+			}
+			context = canvas.getContext("2d");
+
+
+			$('#canvas').mousedown(function(e){
+				var mouseX = e.pageX - this.offsetLeft;
+				var mouseY = e.pageY - this.offsetTop;
+				paint = true;
+				var x = addClick( e.pageX - this.offsetLeft, e.pageY - this.offsetTop );
+				// console.log(e)
+				redraw();
+			});
+			$('#canvas').mousemove(function(e){
+				if(paint){
+					addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
+					console.log(e)
+					redraw();
+				}
+			});
+			$('#canvas').mouseup(function(e){
+				paint = false;
+			});
+			$('#canvas').mouseleave(function(e){
+				paint = false;
+			});
+			var clickX = new Array();
+			var clickY = new Array();
+			var clickDrag = new Array();
+			var paint;
+			function addClick(x, y, dragging){
+				clickX.push(x);
+				clickY.push(y);
+				clickDrag.push(dragging);
+			}
+
+			function redraw(){
+				context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+				context.strokeStyle = "white";
+				context.lineJoin = "round";
+				context.lineWidth = 5;			
+				for(var i=0; i < clickX.length; i++) {		
+					context.beginPath();
+					if( clickDrag[i] && i ){
+						context.moveTo( clickX[i-1], clickY[i-1] );
+					 }else{
+						 context.moveTo( clickX[i]-1, clickY[i] );
+					 }
+					 context.lineTo( clickX[i], clickY[i] );
+					 context.closePath();
+					 context.stroke();
+				}
+			}
+			$("#clear").on("click", redraw());
+
+
+		</script>
+	</body>
+</html>

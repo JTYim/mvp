@@ -10,9 +10,14 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "express": "^4.13.4",
+    "jquery": "^2.2.0",
+    "node-static": "^0.7.7",
+    "socket.io": "^1.4.5"
+  },
+  "devDependencies": {
     "ejs": "^2.4.1",
     "express": "^3.4.8",
     "partials": "^0.1.0"
-  },
-  "devDependencies": {}
+  }
 }
